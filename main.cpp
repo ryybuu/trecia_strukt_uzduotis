@@ -7,14 +7,16 @@
 using namespace std;
 
 void stars();
+
 void main_menu();
+
 bool nuskaityti_duomenis(int &uzsakymo_prekiu_kiekis, string kategorijos[100], string pavadinimai[100],
                          double kainos[100], int kiekiai[100]);
 
 
 int main() {
     int meniu_pasirinkimas;
-    string kategorijų_pavadinimai[3] = {"Dviraciai", "Dalys", "Aksesuarai"};
+    string kategoriju_pavadinimai[3] = {"Dviraciai", "Dalys", "Aksesuarai"};
     int uzsakymo_prekiu_kiekis;
 
     string kategorijos[100] = {};
@@ -22,8 +24,10 @@ int main() {
     double kainos[100] = {};
     int kiekiai[100] = {};
 
-    nuskaityti_duomenis(uzsakymo_prekiu_kiekis, kategorijos, pavadinimai,
-                        kainos, kiekiai);
+    if (!nuskaityti_duomenis(uzsakymo_prekiu_kiekis, kategorijos, pavadinimai,
+                             kainos, kiekiai)) {
+        return 1;
+    }
 
     do {
         main_menu();
@@ -31,17 +35,60 @@ int main() {
         switch (meniu_pasirinkimas) {
             case 1:
                 cout << "Visos uzsakymo prekes:" << endl;
-                cout << string(80, '-') << endl;
-                cout << left << setw(13) << "Kategorija" << setw(50) << "Pavadinimas" << setw(10) << "Kaina" <<
-                        setw(15) << "Kiekis"
+                cout << string(119, '-') << endl;
+
+                cout << left
+                        << setw(13) << "Kategorija"
+                        << setw(50) << "Pavadinimas"
+                        << setw(10) << "Kaina"
+                        << setw(10) << "Kiekis"
+                        << setw(10) << "Suma"
+                        << setw(10) << "Nuolaida";
+                cout << right << setw(10) << "Galutine suma"
                         << endl;
-                cout << string(80, '-') << endl;
+
+                cout << string(119, '-') << endl;
+
                 for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
-                    cout << left << setw(12) << kategorijos[i] << setw(50) << pavadinimai[i] << fixed <<
-                            setw(8)
-                            <<
-                            setprecision(2) << kainos[i] << setw(10) << kiekiai[i];
-                    cout << endl;
+                    double suma = kainos[i] * kiekiai[i];
+                    double nuolaida = 0;
+                    if (kiekiai[i] >= 10) {
+                        nuolaida = suma * 0.1;
+                    }
+                    cout << left << fixed << setprecision(2)
+                            << setw(13) << kategorijos[i]
+                            << setw(50) << pavadinimai[i]
+                            << setw(10) << kainos[i]
+                            << setw(10) << kiekiai[i]
+                            << setw(10) << suma
+                            << setw(10) << nuolaida;
+                    cout << right << setw(10) << suma - nuolaida
+                            << endl;
+                }
+                break;
+            case 2:
+                int kat_ivestis;
+                do {
+                    cout << "Pasirinkite kategorija, kurios prekes norite pamatyti:" << endl;
+                    cout << "1." << kategoriju_pavadinimai[0] << endl;
+                    cout << "2." << kategoriju_pavadinimai[1] << endl;
+                    cout << "3." << kategoriju_pavadinimai[2] << endl;
+
+                    cin >> kat_ivestis;
+                } while (kat_ivestis < 1 || kat_ivestis > 3);
+
+                cout << "Kategorija: " << kategoriju_pavadinimai[kat_ivestis - 1] << endl;
+                cout << left
+                        << setw(50) << "Pavadinimas"
+                        << setw(10) << "Kaina"
+                        << setw(10) << "Kiekis" << endl;
+                for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
+                    if (kategorijos[i] == kategoriju_pavadinimai[kat_ivestis - 1]) {
+                        cout << left
+                                << setw(50) << pavadinimai[i]
+                                << setw(10) << fixed << setprecision(2) << kainos[i]
+                                << setw(10) << kiekiai[i] << endl;
+                    }
                 }
                 break;
         }
@@ -87,7 +134,7 @@ bool nuskaityti_duomenis(int &uzsakymo_prekiu_kiekis, string kategorijos[100], s
     uzsakymo_failas.ignore();
 
     if (uzsakymo_prekiu_kiekis < 1 || uzsakymo_prekiu_kiekis > 100) {
-        cout << "Prekiu irasu kiekis virsija leistina limita (1-100)" << endl;
+        cout << "Prekiu irasu kiekis neteisingas turetu buti 1-100" << endl;
         return false;
     }
 
