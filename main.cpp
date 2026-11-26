@@ -203,14 +203,17 @@ void main_menu() {
 bool nuskaityti_duomenis(int &uzsakymo_prekiu_kiekis, string kategorijos[100], string pavadinimai[100],
                          double kainos[100], int kiekiai[100]) {
     ifstream uzsakymo_failas("uzsakymas.txt");
-    char delimiter(';');
 
     if (!uzsakymo_failas.is_open()) {
         cout << "Nepavyko atidaryti failo" << endl;
         return false;
     }
 
-    uzsakymo_failas >> uzsakymo_prekiu_kiekis;
+    if (!(uzsakymo_failas >> uzsakymo_prekiu_kiekis)) {
+        cout << "Nepavyko nuskaityti prekiu kiekio" << endl;
+        return false;
+    }
+
     uzsakymo_failas.ignore();
 
     if (uzsakymo_prekiu_kiekis < 1 || uzsakymo_prekiu_kiekis > 100) {
@@ -219,15 +222,37 @@ bool nuskaityti_duomenis(int &uzsakymo_prekiu_kiekis, string kategorijos[100], s
     }
 
     for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
-        getline(uzsakymo_failas, kategorijos[i], delimiter);
-        getline(uzsakymo_failas, pavadinimai[i], delimiter);
-        uzsakymo_failas >> kainos[i];
-        uzsakymo_failas.ignore(1, delimiter);
-        uzsakymo_failas >> kiekiai[i];
-        uzsakymo_failas.ignore();
-    }
+        char skirtukas;
 
-    uzsakymo_failas.close();
+        if (!getline(uzsakymo_failas, kategorijos[i], ';') ||
+            !getline(uzsakymo_failas, pavadinimai[i], ';') ||
+            !(uzsakymo_failas >> kainos[i]) ||
+            !(uzsakymo_failas >> skirtukas) || skirtukas != ';' ||
+            !(uzsakymo_failas >> kiekiai[i])) {
+            cout << "Nepavyko nuskaityti prekes Nr. " << i + 1 << endl;
+            return false;
+        }
+
+        if (kategorijos[i] != "Dviraciai" &&
+            kategorijos[i] != "Dalys" &&
+            kategorijos[i] != "Aksesuarai") {
+            cout << "Neteisinga prekes kategorija irase Nr. " << i + 1 << endl;
+            return false;
+        }
+
+        if (kainos[i] <= 0 || kiekiai[i] <= 0) {
+            cout << "Neteisinga prekes kaina arba kiekis irase Nr. " << i + 1 << endl;
+            return false;
+        }
+
+        string likutis;
+        getline(uzsakymo_failas, likutis);
+
+        if (!likutis.empty() && likutis != "\r") {
+            cout << "Neteisingas prekes kiekio formatas prekės Nr. " << i + 1 << endl;
+            return false;
+        }
+    }
 
     return true;
 }
@@ -282,7 +307,6 @@ void spausdinti_ataskaita(ostream &isvedimas, int uzsakymo_prekiu_kiekis,
                           string kategoriju_pavadinimai[3]) {
     isvedimas << fixed << setprecision(2);
 
-    // VISU PREKIU LENTELE
     isvedimas << "VISA UZSAKYMO ATASKAITA" << endl;
     isvedimas << string(119, '-') << endl;
 
