@@ -20,6 +20,14 @@ double bendra_nuolaidu_suma(int uzsakymo_prekiu_kiekis, double kainos[100], int 
 bool ar_kategorija_tuscia(int uzsakymo_prekiu_kiekis, string kategorijos[100], string kategoriju_pavadinimai[3],
                           int kat_ivestis);
 
+double kategorijos_suma(int uzsakymo_prekiu_kiekis, string kategorijos[100], double kainos[100], int kiekiai[100],
+                        string kategorijos_pavadinimas);
+
+void spausdinti_ataskaita(ostream &isvedimas, int uzsakymo_prekiu_kiekis,
+                          string kategorijos[100], string pavadinimai[100],
+                          double kainos[100], int kiekiai[100],
+                          string kategoriju_pavadinimai[3]);
+
 int main() {
     int meniu_pasirinkimas;
     string kategoriju_pavadinimai[3] = {"Dviraciai", "Dalys", "Aksesuarai"};
@@ -101,6 +109,12 @@ int main() {
                                 << setw(10) << kiekiai[i] << endl;
                     }
                 }
+
+                cout << endl << "Kategorijos moketina suma: "
+                        << fixed << setprecision(2)
+                        << kategorijos_suma(uzsakymo_prekiu_kiekis,
+                                            kategorijos, kainos, kiekiai,
+                                            kategoriju_pavadinimai[kat_ivestis - 1]) << endl;
                 break;
             case 3:
                 cout << "Uzsakymo sumos:" << endl;
@@ -115,7 +129,47 @@ int main() {
                 cout << string(50, '-') << endl;
                 break;
             case 4:
+                cout << "Sumos su nuolaidom, pagal kategorijas:" << endl;
+                cout << string(25, '-') << endl;
+                for (int i = 0; i < 3; i++) {
+                    cout << left << setw(12) << kategoriju_pavadinimai[i] << right << setw(12) << fixed <<
+                            setprecision(2) << kategorijos_suma(
+                                uzsakymo_prekiu_kiekis, kategorijos, kainos, kiekiai,
+                                kategoriju_pavadinimai[i]) << endl;
+                }
+                cout << string(25, '-') << endl;
+                break;
+            case 5:
+                spausdinti_ataskaita(cout, uzsakymo_prekiu_kiekis,
+                                     kategorijos, pavadinimai, kainos, kiekiai,
+                                     kategoriju_pavadinimai);
+                break;
+            case 6: {
+                ofstream ataskaitos_failas("ataskaita.txt");
 
+                if (!ataskaitos_failas.is_open()) {
+                    cout << "Nepavyko atidaryti ataskaitos failo." << endl;
+                    break;
+                }
+
+                spausdinti_ataskaita(ataskaitos_failas, uzsakymo_prekiu_kiekis,
+                                     kategorijos, pavadinimai, kainos, kiekiai,
+                                     kategoriju_pavadinimai);
+
+                ataskaitos_failas.close();
+
+                if (ataskaitos_failas.fail()) {
+                    cout << "Klaida irasant ataskaita." << endl;
+                } else {
+                    cout << "Ataskaita sekmingai issaugota faile ataskaita.txt" << endl;
+                }
+                break;
+            }
+            case 7:
+                cout << "Programa isjungiama" << endl;
+                break;
+            default:
+                cout << "Neteisingas pasirinkimas, iveskite meniu punkta nuo 1 iki 7." << endl;
                 break;
         }
     } while (meniu_pasirinkimas != 7);
@@ -204,4 +258,91 @@ double bendra_nuolaidu_suma(int uzsakymo_prekiu_kiekis, double kainos[100], int 
         }
     }
     return nuolaidu_suma;
+}
+
+double kategorijos_suma(int uzsakymo_prekiu_kiekis, string kategorijos[100], double kainos[100], int kiekiai[100],
+                        string kategorijos_pavadinimas) {
+    double suma = 0;
+    for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
+        if (kategorijos_pavadinimas == kategorijos[i]) {
+            if (kiekiai[i] >= 10) {
+                suma += kainos[i] * kiekiai[i] * 0.9;
+            } else {
+                suma += kainos[i] * kiekiai[i];
+            }
+        }
+    }
+    return suma;
+}
+
+
+void spausdinti_ataskaita(ostream &isvedimas, int uzsakymo_prekiu_kiekis,
+                          string kategorijos[100], string pavadinimai[100],
+                          double kainos[100], int kiekiai[100],
+                          string kategoriju_pavadinimai[3]) {
+    isvedimas << fixed << setprecision(2);
+
+    // VISU PREKIU LENTELE
+    isvedimas << "VISA UZSAKYMO ATASKAITA" << endl;
+    isvedimas << string(119, '-') << endl;
+
+    isvedimas << left
+            << setw(13) << "Kategorija"
+            << setw(50) << "Pavadinimas"
+            << setw(10) << "Kaina"
+            << setw(10) << "Kiekis"
+            << setw(10) << "Suma"
+            << setw(10) << "Nuolaida"
+            << right << setw(16) << "Galutine suma"
+            << endl;
+
+    isvedimas << string(119, '-') << endl;
+
+    for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
+        double suma = kainos[i] * kiekiai[i];
+        double nuolaida = 0;
+
+        if (kiekiai[i] >= 10) {
+            nuolaida = suma * 0.1;
+        }
+
+        isvedimas << left
+                << setw(13) << kategorijos[i]
+                << setw(50) << pavadinimai[i]
+                << setw(10) << kainos[i]
+                << setw(10) << kiekiai[i]
+                << setw(10) << suma
+                << setw(10) << nuolaida
+                << right << setw(16) << suma - nuolaida
+                << endl;
+    }
+
+
+    isvedimas << endl;
+    isvedimas << "Uzsakymo sumos:" << endl;
+    isvedimas << string(50, '-') << endl;
+
+    double suma = bendra_suma(uzsakymo_prekiu_kiekis, kainos, kiekiai);
+    double nuolaidos = bendra_nuolaidu_suma(uzsakymo_prekiu_kiekis, kainos, kiekiai);
+
+    isvedimas << "Bendra suma pries nuolaidas: " << suma << endl;
+    isvedimas << "Bendra nuolaidu suma: " << nuolaidos << endl;
+    isvedimas << "Galutine moketina suma: " << suma - nuolaidos << endl;
+
+    isvedimas << string(50, '-') << endl;
+
+
+    isvedimas << endl;
+    isvedimas << "Sumos su nuolaidom, pagal kategorijas:" << endl;
+    isvedimas << string(25, '-') << endl;
+
+    for (int i = 0; i < 3; i++) {
+        isvedimas << left << setw(12) << kategoriju_pavadinimai[i]
+                << right << setw(12)
+                << kategorijos_suma(uzsakymo_prekiu_kiekis, kategorijos,
+                                    kainos, kiekiai, kategoriju_pavadinimai[i])
+                << endl;
+    }
+
+    isvedimas << string(25, '-') << endl;
 }
