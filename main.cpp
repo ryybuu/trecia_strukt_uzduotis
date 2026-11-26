@@ -13,6 +13,12 @@ void main_menu();
 bool nuskaityti_duomenis(int &uzsakymo_prekiu_kiekis, string kategorijos[100], string pavadinimai[100],
                          double kainos[100], int kiekiai[100]);
 
+double bendra_suma(int uzsakymo_prekiu_kiekis, double kainos[100], int kiekiai[100]);
+
+double bendra_nuolaidu_suma(int uzsakymo_prekiu_kiekis, double kainos[100], int kiekiai[100]);
+
+bool ar_kategorija_tuscia(int uzsakymo_prekiu_kiekis, string kategorijos[100], string kategoriju_pavadinimai[3],
+                          int kat_ivestis);
 
 int main() {
     int meniu_pasirinkimas;
@@ -77,6 +83,11 @@ int main() {
                     cin >> kat_ivestis;
                 } while (kat_ivestis < 1 || kat_ivestis > 3);
 
+                if (ar_kategorija_tuscia(uzsakymo_prekiu_kiekis, kategorijos, kategoriju_pavadinimai, kat_ivestis)) {
+                    cout << "Jokios prekes nebuvo pasirinktos sitoje kategorijoje" << endl;
+                    break;
+                }
+
                 cout << "Kategorija: " << kategoriju_pavadinimai[kat_ivestis - 1] << endl;
                 cout << left
                         << setw(50) << "Pavadinimas"
@@ -90,6 +101,21 @@ int main() {
                                 << setw(10) << kiekiai[i] << endl;
                     }
                 }
+                break;
+            case 3:
+                cout << "Uzsakymo sumos:" << endl;
+                cout << string(50, '-') << endl;
+                cout << "Bendra suma pries nuolaidas: " << fixed << setprecision(2) << bendra_suma(
+                    uzsakymo_prekiu_kiekis, kainos, kiekiai) << endl;
+                cout << "Bendra nuolaidu suma: " << fixed << setprecision(2) << bendra_nuolaidu_suma(
+                    uzsakymo_prekiu_kiekis, kainos, kiekiai) << endl;
+                cout << "Galutine moketina suma: " << fixed << setprecision(2) << bendra_suma(
+                    uzsakymo_prekiu_kiekis, kainos, kiekiai) - bendra_nuolaidu_suma(
+                    uzsakymo_prekiu_kiekis, kainos, kiekiai) << endl;
+                cout << string(50, '-') << endl;
+                break;
+            case 4:
+
                 break;
         }
     } while (meniu_pasirinkimas != 7);
@@ -113,7 +139,7 @@ void main_menu() {
     cout << "2. Perziureti pasirinktos kategorijos prekes." << endl;
     cout << "3. Perziureti viso uzsakymo sumas." << endl;
     cout << "4. Perziureti sumas pagal kategorijas." << endl;
-    cout << "5. Parodyti visa uzzsakymo ataskaita." << endl;
+    cout << "5. Parodyti visa uzsakymo ataskaita." << endl;
     cout << "6. Issaugoti visa ataskaita i faila." << endl;
     cout << "7. Iseiti." << endl;
     stars();
@@ -150,4 +176,32 @@ bool nuskaityti_duomenis(int &uzsakymo_prekiu_kiekis, string kategorijos[100], s
     uzsakymo_failas.close();
 
     return true;
+}
+
+bool ar_kategorija_tuscia(int uzsakymo_prekiu_kiekis, string kategorijos[100], string kategoriju_pavadinimai[3],
+                          int kat_ivestis) {
+    for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
+        if (kategorijos[i] == kategoriju_pavadinimai[kat_ivestis - 1]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+double bendra_suma(int uzsakymo_prekiu_kiekis, double kainos[100], int kiekiai[100]) {
+    double suma = 0;
+    for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
+        suma += kainos[i] * kiekiai[i];
+    }
+    return suma;
+}
+
+double bendra_nuolaidu_suma(int uzsakymo_prekiu_kiekis, double kainos[100], int kiekiai[100]) {
+    double nuolaidu_suma = 0;
+    for (int i = 0; i < uzsakymo_prekiu_kiekis; i++) {
+        if (kiekiai[i] >= 10) {
+            nuolaidu_suma += kainos[i] * kiekiai[i] * 0.1;
+        }
+    }
+    return nuolaidu_suma;
 }
